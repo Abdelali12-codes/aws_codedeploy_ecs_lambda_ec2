@@ -1,0 +1,44 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/ec2-user/devops
+file_exists_behavior: DISALLOW|OVERWRITE|RETAIN
+
+
+permissions:
+  - object: /home/ec2-user/devops/folder1
+    pattern: "*-3.txt"
+    owner: ec2-user
+    group: wheel
+    mode: 464
+    type:
+      - file
+# 2) For all of the files ending in .txt in the /tmp/my-app
+#  folder, but not for the file my-file-3.txt (for example,
+#  just my-file-1.txt and my-file-2.txt),
+#  owner = ec2-user and mode = 444 (-r--r--r--).
+  - object: /home/ec2-user/folder2
+    pattern: "*.txt"
+    except: [my-file-3.txt]
+    owner: ec2-user
+    mode: 444
+    acls:
+      - u:ec2-user:rw
+    type:
+      - file
+
+  - object: /home/ec2-user/devops
+    pattern: "folder*"
+    except: [home/ec2-user/folder2/folder3]
+    owner: ec2-user
+    mode: 555
+    type:
+      - directory
+
+hooks:
+   AfterInstall:
+     - location: Scripts/RunResourceTests.sh
+       timeout: 180
+     - location: Scripts/PostDeploy.sh
+       timeout: 180
